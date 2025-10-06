@@ -1,0 +1,58 @@
+{
+    "CAF_ORG" :
+    {
+        "org_code": "#btnSwitch_07J"
+    },
+    "CAFObjectiveTitle":
+    {
+        "A_Objective_Title": "A. Managing risk",
+        "B_Objective_Title": "B. Protecting against cyber attack and data breaches",
+        "C_Objective_Title": "C. Detecting cyber security events",
+        "D_Objective_Title": "D. Minimising the impact of incidents",
+        "E_Objective_Title": "E. Using and sharing information appropriately"
+
+    },
+    "CAFObjectiveDescription":
+    {
+        "A_Objective" : "Appropriate organisational structures, policies, and processes in place to understand, assess and systematically manage risks to the security and governance of information, systems and networks supporting essential functions.",
+        "B_Objective" : "Proportionate security measures are in place to protect information, systems and networks supporting essential functions from cyber attack and data breaches.",
+        "C_Objective" : "Capabilities exist to ensure security defences remain effective and to detect cyber security events affecting, or with the potential to affect, essential function(s).",
+        "D_Objective" : "Capabilities exist to minimise the adverse impact of an incident on the operation of essential functions, including the restoration of those functions where necessary, and to uphold the rights of impacted individuals.",
+        "E_Objective" : "The organisation ensures that information is used and shared lawfully and appropriately."
+    },
+    "Principle_name":
+    {
+        "A1": "Principle A1",
+        "A4": "Principle A4",
+        "B1": "Principle B1",
+        "B6": "Principle B6"
+    },
+    "Principle_count":{
+        "A" : 4,
+        "B" : 6,
+        "C" : 2,
+        "D" : 2,
+        "E" : 4
+    },
+    "Principle_description":
+    {
+        "A1": "The organisation has appropriate management policies, processes and procedures in place to govern its approach to the security and governance of information, systems and networks.",
+        "A2" : "The organisation takes appropriate steps to identify, assess and understand risks to the security and governance of information, systems and networks supporting the operation of essential functions. This includes an overall organisational approach to risk management.",
+        "A3" : "Everything required to deliver, maintain or support networks and information systems necessary for the operation of essential functions is determined and understood. This includes data, people and systems, as well as any supporting infrastructure (such as power or cooling).",
+        "A4" : "The organisation understands and manages security and information governance (IG) risks to information, systems and networks supporting the operation of essential functions that arise as a result of dependencies on external suppliers. This includes ensuring that appropriate measures are employed where third party services are used.",
+        "B1" : "The organisation defines, implements, communicates and enforces appropriate policies, processes and procedures that direct its overall approach to securing information, systems and data that support operation of essential functions.",
+        "B6" : "Staff have appropriate awareness, knowledge and skills to carry out their organisational roles effectively in relation to information, systems and networks supporting the operation of essential functions."
+    },
+    "Outcome":
+    {
+        "A1.a" : "Board direction",
+        "A1.a_description" : "You have effective organisational information assurance management led at board level and articulated clearly in corresponding policies.",
+        "A1.b": "Roles and responsibilities",
+        "A1.c" : "Decision-making and approval",
+        "A2.b": "Assurance",
+        "A2.b_description": "You have gained confidence in the effectiveness of the security and governance of your technology, people, and processes relevant to your essential function(s).",
+        "B1.a" : "Policy, process and procedure development",
+        "B1.a_description": "You have developed and continue to improve a set of information assurance and resilience policies, processes and procedures that manage and mitigate the risk of adverse impact on your essential function(s)."
+    }
+
+}

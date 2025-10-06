@@ -1,0 +1,22 @@
+# Screenshots and test reports
+screenshots/
+reports
+
+# Virtual environments
+venv/
+.venv
+
+# Logs
+dspt.log
+
+# Python
+__pycache__/
+*.pyc
+.python-version
+behave-stubs
+
+# IDEs
+.idea/
+.vscode/
+
+run_parallel.py

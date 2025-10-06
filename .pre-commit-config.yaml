@@ -1,0 +1,28 @@
+repos:
+  # Python formatter: Black
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3
+
+  # Python linter: Flake8 (optional, helps catch unused imports etc.)
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+
+  # Prettier for Gherkin (.feature files)
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.0
+    hooks:
+      - id: prettier
+        additional_dependencies: ["prettier-plugin-gherkin"]
+        files: "\\.feature$"
+
+  # Remove trailing whitespace, fix end-of-file newlines
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
