@@ -2,14 +2,10 @@ pipeline {
     agent any
 
     environment {
-        // Local Python path in workspace
-        PYTHON_HOME = "${WORKSPACE}\\.python"
-        PATH = "${PYTHON_HOME};${PYTHON_HOME}\\Scripts;${PATH}"
-
-        // Local Poetry path in workspace
-        POETRY_HOME = "${WORKSPACE}\\.poetry"
-        PATH = "${POETRY_HOME}\\bin;${PATH}"
-    }
+    POETRY_HOME = "${WORKSPACE}\\.poetry"
+    NODEJS_HOME = "C:\\Program Files\\nodejs" // if using local Node, or leave blank if using choco
+    PATH = "${POETRY_HOME}\\bin;${NODEJS_HOME};${NODEJS_HOME}\\bin;${WORKSPACE}\\.python;${PATH}"
+}
 
     stages {
 
