@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
+        PYTHON_HOME = "${WORKSPACE}\\.python"
         POETRY_HOME = "${WORKSPACE}\\.poetry"
-        PATH = "${POETRY_HOME}\\bin;${WORKSPACE}\\.nodejs\\node-v20.8.1-win-x64;${WORKSPACE}\\.allure\\bin;${PATH}"
+        PATH = "${PYTHON_HOME};${POETRY_HOME}\\bin;${env.PATH}"
     }
 
     stages {
@@ -15,85 +16,69 @@ pipeline {
             }
         }
 
-        stage('Setup Python & Poetry') {
+        stage('Setup Python') {
             steps {
-                echo '===== Verifying Python ====='
-                bat 'python --version'
-
-                echo '===== Installing Poetry locally in workspace ====='
-                bat """
-                powershell -Command "Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile .\\\\install-poetry.py -UseBasicParsing"
-                python install-poetry.py --yes --no-modify-path
-                """
-
-                echo '===== Verifying Poetry Installation ====='
-                bat '.\\.poetry\\bin\\poetry --version'
+                echo 'Downloading portable Python...'
+                bat '''
+                powershell -Command "Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.12.9/python-3.12.9-embed-amd64.zip -OutFile python.zip"
+                powershell -Command "Expand-Archive python.zip -DestinationPath .\\.python"
+                '''
+                echo 'Verifying Python...'
+                bat '.\\.python\\python.exe --version'
             }
         }
 
-        stage('Setup Node.js for Playwright') {
+        stage('Setup Poetry') {
             steps {
-                echo '===== Installing Node.js locally in workspace ====='
-                bat """
-                powershell -Command "Invoke-WebRequest -Uri https://nodejs.org/dist/v20.8.1/node-v20.8.1-win-x64.zip -OutFile node.zip"
-                powershell -Command "Expand-Archive node.zip -DestinationPath .\\\\.nodejs"
-                """
-                echo '===== Verifying Node.js ====='
-                bat '.\\.nodejs\\node-v20.8.1-win-x64\\node.exe --version'
-                bat '.\\.nodejs\\node-v20.8.1-win-x64\\npm.cmd --version'
+                echo 'Installing Poetry...'
+                bat '''
+                .\\.python\\python.exe -m ensurepip
+                .\\.python\\python.exe -m pip install --upgrade pip
+                powershell -Command "Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py"
+                .\\.python\\python.exe install-poetry.py -y -p %WORKSPACE%\\.poetry
+                '''
+                echo 'Verifying Poetry...'
+                bat '.\\.poetry\\bin\\poetry --version'
             }
         }
 
         stage('Install Project Dependencies') {
             steps {
-                echo '===== Installing project dependencies ====='
-                bat '.\\.poetry\\bin\\poetry install --no-root'
-                bat '.\\.poetry\\bin\\poetry run playwright install'
-            }
-        }
-
-        stage('Setup Allure CLI') {
-            steps {
-                echo '===== Installing Allure CLI locally ====='
-                bat """
-                powershell -Command "Invoke-WebRequest -Uri https://github.com/allure-framework/allure2/releases/download/2.23.1/allure-2.23.1.zip -OutFile allure.zip"
-                powershell -Command "Expand-Archive allure.zip -DestinationPath .\\\\.allure"
-                """
-                echo '===== Verifying Allure CLI ====='
-                bat '.\\.allure\\allure-2.23.1\\bin\\allure.bat --version'
+                echo 'Installing project dependencies via Poetry...'
+                bat '''
+                .\\.poetry\\bin\\poetry config virtualenvs.in-project true
+                .\\.poetry\\bin\\poetry install
+                .\\.poetry\\bin\\poetry run playwright install
+                '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                echo '===== Running Playwright Behave tests ====='
-                bat '.\\.poetry\\bin\\poetry run behave --tags @regression || exit 0'
+                echo 'Running Playwright + Behave tests...'
+                bat '''
+                .\\.poetry\\bin\\poetry run behave --tags @regression || exit 0
+                '''
             }
         }
 
         stage('Generate Allure Report') {
             steps {
-                echo '===== Generating Allure Report ====='
-                bat """
+                echo 'Generating Allure report...'
+                bat '''
                 if exist reports\\allure-results (
-                    .\\.allure\\allure-2.23.1\\bin\\allure.bat generate reports\\allure-results --clean -o reports\\allure-report
+                    allure generate reports\\allure-results --clean -o reports\\allure-report
                 ) else (
                     echo "Allure results folder not found, skipping..."
                 )
-                """
-                publishHTML([allowMissing: true,
-                             alwaysLinkToLastBuild: true,
-                             keepAll: true,
-                             reportDir: 'reports\\allure-report',
-                             reportFiles: 'index.html',
-                             reportName: 'Allure Report'])
+                '''
             }
         }
     }
 
     post {
         always {
-            echo '🧹 Cleaning up workspace...'
+            echo 'Cleaning up workspace...'
             cleanWs()
         }
         success {
