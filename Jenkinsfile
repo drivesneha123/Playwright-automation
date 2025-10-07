@@ -3,61 +3,72 @@ pipeline {
 
     environment {
         POETRY_HOME = "${WORKSPACE}\\poetry"
-        PATH = "${POETRY_HOME}\\bin;${PATH}"
+        PATH = "${POETRY_HOME}\\bin;${env:PATH}"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                echo 'Cloning GitHub repository...'
+                echo '📦 Cloning GitHub repository...'
                 git branch: 'main', url: 'https://github.com/drivesneha123/Playwright-automation.git'
             }
         }
 
         stage('Setup Python & Poetry') {
             steps {
-                bat '''
-                echo Installing Python dependencies...
-                python --version
+                echo '🐍 Setting up Python and Poetry...'
 
-                echo Installing Poetry...
-                (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+                // ✅ Run PowerShell for Poetry installation
+                powershell '''
+                    Write-Host "Python version:"
+                    python --version
 
-                echo Verifying Poetry...
-                call %USERPROFILE%\\AppData\\Roaming\\Python\\Scripts\\poetry --version
+                    Write-Host "Installing Poetry..."
+                    (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+
+                    # Add Poetry to PATH for this session
+                    $env:Path += ";$env:APPDATA\\Python\\Scripts"
+
+                    Write-Host "Verifying Poetry..."
+                    poetry --version
+
+                    # Configure Poetry to create virtualenv inside project
+                    poetry config virtualenvs.in-project true
                 '''
             }
         }
 
         stage('Install Project Dependencies') {
             steps {
-                bat '''
-                echo Installing dependencies via Poetry...
-                call %USERPROFILE%\\AppData\\Roaming\\Python\\Scripts\\poetry install
-                call %USERPROFILE%\\AppData\\Roaming\\Python\\Scripts\\poetry run playwright install
+                echo '📦 Installing dependencies...'
+                powershell '''
+                    $env:Path += ";$env:APPDATA\\Python\\Scripts"
+                    poetry install
+                    poetry run playwright install
                 '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat '''
-                echo Running Playwright Behave tests...
-                call %USERPROFILE%\\AppData\\Roaming\\Python\\Scripts\\poetry run behave --tags @regression || exit 0
+                echo '🧪 Running Playwright Behave tests...'
+                powershell '''
+                    $env:Path += ";$env:APPDATA\\Python\\Scripts"
+                    poetry run behave
                 '''
             }
         }
 
         stage('Generate Allure Report') {
             steps {
-                bat '''
-                echo Generating Allure report...
-                if exist reports\\allure-results (
-                    allure generate reports\\allure-results --clean -o reports\\allure-report
-                ) else (
-                    echo "Allure results folder not found, skipping..."
-                )
+                echo '📊 Generating Allure report...'
+                powershell '''
+                    if (Test-Path "reports\\allure-results") {
+                        allure generate reports\\allure-results --clean -o reports\\allure-report
+                    } else {
+                        Write-Host "⚠️ Allure results folder not found, skipping..."
+                    }
                 '''
             }
         }
@@ -65,7 +76,7 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning up workspace...'
+            echo '🧹 Cleaning up workspace...'
             cleanWs()
         }
         success {
