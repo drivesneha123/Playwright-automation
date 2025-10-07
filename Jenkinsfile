@@ -2,11 +2,13 @@ pipeline {
     agent any
 
     environment {
-        // Paths inside Jenkins workspace
-        PYTHON_DIR = "${WORKSPACE}\\.python"
+        // Local Python path in workspace
+        PYTHON_HOME = "${WORKSPACE}\\.python"
+        PATH = "${PYTHON_HOME};${PYTHON_HOME}\\Scripts;${PATH}"
+
+        // Local Poetry path in workspace
         POETRY_HOME = "${WORKSPACE}\\.poetry"
-        NODEJS_HOME = "C:\\Program Files\\nodejs" // adjust if needed
-        PATH = "${PYTHON_DIR};${PYTHON_DIR}\\Scripts;${POETRY_HOME}\\bin;${NODEJS_HOME};${NODEJS_HOME}\\bin;${env.PATH}"
+        PATH = "${POETRY_HOME}\\bin;${PATH}"
     }
 
     stages {
@@ -20,14 +22,13 @@ pipeline {
 
         stage('Setup Python') {
             steps {
-                echo 'Downloading portable Python...'
+                echo 'Downloading and setting up portable Python...'
                 bat '''
-                powershell -Command "Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.12.9/python-3.12.9-embed-amd64.zip -OutFile python.zip"
-                powershell -Command "Expand-Archive python.zip -DestinationPath .\\.python"
-                del python.zip
-                '''
-                echo 'Verifying Python...'
-                bat '''
+                if not exist .\\.python (
+                    powershell -Command "Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.12.9/python-3.12.9-embed-amd64.zip -OutFile python.zip"
+                    powershell -Command "Expand-Archive python.zip -DestinationPath .\\.python"
+                    del python.zip
+                )
                 .\\.python\\python.exe --version
                 '''
             }
@@ -49,32 +50,31 @@ pipeline {
             steps {
                 echo 'Installing Poetry inside workspace...'
                 bat '''
-                powershell -Command "Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py"
-                .\\.python\\python.exe install-poetry.py --yes --path .\\.poetry
-                del install-poetry.py
-                '''
-                echo 'Verifying Poetry...'
-                bat '''
-                .\\.poetry\\bin\\poetry --version
+                if not exist .\\.poetry (
+                    powershell -Command "Invoke-WebRequest -Uri https://install.python-poetry.org -OutFile install-poetry.py"
+                    .\\.python\\python.exe install-poetry.py --yes --path .\\.poetry
+                    del install-poetry.py
+                )
+                call .\\.poetry\\bin\\poetry --version
                 '''
             }
         }
 
         stage('Install Project Dependencies') {
             steps {
-                echo 'Installing project dependencies via Poetry...'
+                echo 'Installing dependencies via Poetry...'
                 bat '''
-                .\\.poetry\\bin\\poetry install --no-root
-                .\\.poetry\\bin\\poetry run playwright install
+                call .\\.poetry\\bin\\poetry install --no-root
+                call .\\.poetry\\bin\\poetry run playwright install
                 '''
             }
         }
 
-        stage('Run Tests') {
+        stage('Run Behave Tests') {
             steps {
                 echo 'Running Playwright + Behave tests...'
                 bat '''
-                .\\.poetry\\bin\\poetry run behave --tags @regression || exit 0
+                call .\\.poetry\\bin\\poetry run behave --tags @regression || exit 0
                 '''
             }
         }
@@ -86,7 +86,7 @@ pipeline {
                 if exist reports\\allure-results (
                     allure generate reports\\allure-results --clean -o reports\\allure-report
                 ) else (
-                    echo "Allure results folder not found, skipping report generation..."
+                    echo "Allure results folder not found, skipping..."
                 )
                 '''
             }
