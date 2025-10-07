@@ -20,19 +20,12 @@ pipeline {
                 bat '''
                 echo ===== Verifying Python =====
                 python --version
-                '''
-                powershell '''
-                Write-Host "===== Installing Poetry ====="
-                try {
-                    (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
-                    Write-Host "===== Poetry Installed Successfully ====="
-                } catch {
-                    Write-Host "❌ Poetry installation failed: $($_.Exception.Message)"
-                    exit 1
-                }
-                '''
-                bat '''
-                echo ===== Verifying Poetry =====
+
+                echo ===== Installing Poetry via Python script =====
+                curl -sSL https://install.python-poetry.org -o install-poetry.py
+                python install-poetry.py
+
+                echo ===== Verifying Poetry Installation =====
                 call %USERPROFILE%\\AppData\\Roaming\\Python\\Scripts\\poetry --version
                 '''
             }
@@ -74,9 +67,7 @@ pipeline {
     post {
         always {
             echo '🧹 Cleaning up workspace...'
-            script {
-                deleteDir()  // safer than cleanWs(), avoids MissingContextVariableException
-            }
+            cleanWs()
         }
         success {
             echo '✅ Build succeeded!'
