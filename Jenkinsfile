@@ -7,6 +7,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 echo '🔄 Checking out code from GitHub...'
@@ -19,10 +20,18 @@ pipeline {
                 bat '''
                 echo ===== Verifying Python =====
                 python --version
-
-                echo ===== Installing Poetry =====
-                (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
-
+                '''
+                powershell '''
+                Write-Host "===== Installing Poetry ====="
+                try {
+                    (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+                    Write-Host "===== Poetry Installed Successfully ====="
+                } catch {
+                    Write-Host "❌ Poetry installation failed: $($_.Exception.Message)"
+                    exit 1
+                }
+                '''
+                bat '''
                 echo ===== Verifying Poetry =====
                 call %USERPROFILE%\\AppData\\Roaming\\Python\\Scripts\\poetry --version
                 '''
@@ -55,7 +64,7 @@ pipeline {
                 if exist reports\\allure-results (
                     allure generate reports\\allure-results --clean -o reports\\allure-report
                 ) else (
-                    echo "⚠️ No Allure results found, skipping report generation."
+                    echo ⚠️ No Allure results found, skipping report generation.
                 )
                 '''
             }
@@ -64,9 +73,9 @@ pipeline {
 
     post {
         always {
+            echo '🧹 Cleaning up workspace...'
             script {
-                echo '🧹 Cleaning up workspace...'
-                deleteDir() // safer alternative to cleanWs()
+                deleteDir()  // safer than cleanWs(), avoids MissingContextVariableException
             }
         }
         success {
