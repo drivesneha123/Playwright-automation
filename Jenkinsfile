@@ -2,12 +2,11 @@ pipeline {
     agent any
 
     environment {
-        PYTHON_DIR = "${WORKSPACE}\\.python"
-        POETRY_HOME = "${WORKSPACE}\\.poetry"
-        PATH = "${PYTHON_DIR};${PYTHON_DIR}\\Scripts;${POETRY_HOME}\\bin;${env.PATH}"
-        NODEJS_HOME = "${WORKSPACE}\\.nodejs"
-        PATH = "${NODEJS_HOME};${NODEJS_HOME}\\bin;${PATH}"
-    }
+    PYTHON_DIR = "${WORKSPACE}\\.python"
+    POETRY_HOME = "${WORKSPACE}\\.poetry"
+    NODEJS_HOME = "${WORKSPACE}\\.nodejs"
+    PATH = "${PYTHON_DIR};${PYTHON_DIR}\\Scripts;${POETRY_HOME}\\bin;${NODEJS_HOME};${NODEJS_HOME}\\bin;${env.PATH}"
+}
 
     stages {
 
